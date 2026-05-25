@@ -1,2 +1,3 @@
 # reggie.github.io
-Personal webpage
+
+Basic personal webpage for an academic/professional machine learning engineer and data scientist.
