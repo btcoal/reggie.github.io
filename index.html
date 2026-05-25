@@ -12,6 +12,7 @@
       --muted: #4b5563;
       --accent: #2563eb;
       --card: #f8fafc;
+      --border: #dbe3ef;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -21,6 +22,7 @@
         --muted: #d1d5db;
         --accent: #60a5fa;
         --card: #1f2937;
+        --border: #374151;
       }
     }
 
@@ -49,7 +51,7 @@
 
     .card {
       background: var(--card);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 1rem 1.25rem;
       margin: 1rem 0;
     }
@@ -67,6 +69,84 @@
     a:hover {
       text-decoration: underline;
     }
+
+    .tabs {
+      margin: 1.5rem 0;
+    }
+
+    .tab-list {
+      display: flex;
+      gap: 0.35rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-button {
+      appearance: none;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      padding: 0.7rem 0.9rem;
+    }
+
+    .tab-button:hover,
+    .tab-button[aria-selected="true"] {
+      color: var(--fg);
+    }
+
+    .tab-button[aria-selected="true"] {
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-panel {
+      padding-top: 1rem;
+    }
+
+    .tab-panel[hidden] {
+      display: none;
+    }
+
+    .item {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+
+    .item:first-child {
+      padding-top: 0;
+    }
+
+    .item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .item h3 {
+      font-size: 1rem;
+      margin: 0 0 0.25rem;
+    }
+
+    .item p {
+      margin-bottom: 0.35rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 520px) {
+      .tab-list {
+        overflow-x: auto;
+      }
+
+      .tab-button {
+        flex: 1 0 auto;
+        padding-inline: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -75,6 +155,59 @@
       <h1>Reggie</h1>
       <p>Machine Learning Engineer & Data Scientist</p>
     </header>
+
+    <section class="tabs" aria-label="Selected work">
+      <div class="tab-list" role="tablist" aria-label="Selected work categories">
+        <button class="tab-button" id="blog-posts-tab" role="tab" type="button" aria-selected="true" aria-controls="blog-posts-panel">
+          Blog Posts
+        </button>
+        <button class="tab-button" id="projects-tab" role="tab" type="button" aria-selected="false" aria-controls="projects-panel" tabindex="-1">
+          Projects
+        </button>
+        <button class="tab-button" id="talks-tab" role="tab" type="button" aria-selected="false" aria-controls="talks-panel" tabindex="-1">
+          Talks
+        </button>
+      </div>
+
+      <div class="card tab-panel" id="blog-posts-panel" role="tabpanel" aria-labelledby="blog-posts-tab">
+        <article class="item">
+          <h3><a href="#">Building Reliable ML Evaluation Loops</a></h3>
+          <p>Notes on designing model evaluation workflows that stay useful after deployment.</p>
+          <div class="meta">Blog post</div>
+        </article>
+        <article class="item">
+          <h3><a href="#">What I Track Before Shipping a Model</a></h3>
+          <p>A practical checklist for data quality, monitoring, and production readiness.</p>
+          <div class="meta">Blog post</div>
+        </article>
+      </div>
+
+      <div class="card tab-panel" id="projects-panel" role="tabpanel" aria-labelledby="projects-tab" hidden>
+        <article class="item">
+          <h3><a href="#">Production Forecasting Pipeline</a></h3>
+          <p>End-to-end forecasting system with automated feature generation and drift checks.</p>
+          <div class="meta">Project</div>
+        </article>
+        <article class="item">
+          <h3><a href="#">Experimentation Dashboard</a></h3>
+          <p>Interactive analytics for monitoring A/B tests and explaining metric movement.</p>
+          <div class="meta">Project</div>
+        </article>
+      </div>
+
+      <div class="card tab-panel" id="talks-panel" role="tabpanel" aria-labelledby="talks-tab" hidden>
+        <article class="item">
+          <h3><a href="#">Pragmatic MLOps for Small Teams</a></h3>
+          <p>A talk on lightweight workflows for model deployment, monitoring, and iteration.</p>
+          <div class="meta">Talk</div>
+        </article>
+        <article class="item">
+          <h3><a href="#">Interpretable Models in Product Decisions</a></h3>
+          <p>Examples of using model explanations to help teams make better decisions.</p>
+          <div class="meta">Talk</div>
+        </article>
+      </div>
+    </section>
 
     <section class="card" aria-labelledby="about-heading">
       <h2 id="about-heading">About</h2>
@@ -102,5 +235,44 @@
       </p>
     </section>
   </main>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+    const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+    function selectTab(tab) {
+      tabs.forEach((currentTab) => {
+        const isSelected = currentTab === tab;
+        currentTab.setAttribute('aria-selected', String(isSelected));
+        currentTab.tabIndex = isSelected ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+      });
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectTab(tab));
+
+      tab.addEventListener('keydown', (event) => {
+        const direction = {
+          ArrowLeft: -1,
+          ArrowRight: 1,
+          Home: -index,
+          End: tabs.length - index - 1,
+        }[event.key];
+
+        if (direction === undefined) {
+          return;
+        }
+
+        event.preventDefault();
+        const nextIndex = (index + direction + tabs.length) % tabs.length;
+        tabs[nextIndex].focus();
+        selectTab(tabs[nextIndex]);
+      });
+    });
+  </script>
 </body>
 </html>
